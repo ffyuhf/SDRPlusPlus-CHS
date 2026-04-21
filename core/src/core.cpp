@@ -171,8 +171,10 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["moduleInstances"]["Audio 信号源"]["enabled"] = true;
     defConfig["moduleInstances"]["BladeRF 信号源"]["module"] = "bladerf_source";
     defConfig["moduleInstances"]["BladeRF 信号源"]["enabled"] = true;
-    defConfig["moduleInstances"]["File 信号源"]["module"] = "file_source";
-    defConfig["moduleInstances"]["File 信号源"]["enabled"] = true;
+    defConfig["moduleInstances"]["Dragon Labs 信号源"]["module"] = "dragonlabs_source";
+    defConfig["moduleInstances"]["Dragon Labs 信号源"]["enabled"] = true;
+    defConfig["moduleInstances"]["文件源"]["module"] = "file_source";
+    defConfig["moduleInstances"]["文件源"]["enabled"] = true;
     defConfig["moduleInstances"]["FobosSDR 信号源"]["module"] = "fobossdr_source";
     defConfig["moduleInstances"]["FobosSDR 信号源"]["enabled"] = true;
     defConfig["moduleInstances"]["HackRF 信号源"]["module"] = "hackrf_source";
@@ -185,8 +187,8 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["moduleInstances"]["HydraSDR 信号源"]["enabled"] = true;
     defConfig["moduleInstances"]["LimeSDR 信号源"]["module"] = "limesdr_source";
     defConfig["moduleInstances"]["LimeSDR 信号源"]["enabled"] = true;
-    defConfig["moduleInstances"]["Network 信号源"]["module"] = "network_source";
-    defConfig["moduleInstances"]["Network 信号源"]["enabled"] = true;
+    defConfig["moduleInstances"]["网络源"]["module"] = "network_source";
+    defConfig["moduleInstances"]["网络源"]["enabled"] = true;
     defConfig["moduleInstances"]["PerseusSDR 信号源"]["module"] = "perseus_source";
     defConfig["moduleInstances"]["PerseusSDR 信号源"]["enabled"] = true;
     defConfig["moduleInstances"]["PlutoSDR 信号源"]["module"] = "plutosdr_source";
@@ -201,8 +203,8 @@ int sdrpp_main(int argc, char* argv[]) {
     defConfig["moduleInstances"]["RTL-TCP 信号源"]["enabled"] = true;
     defConfig["moduleInstances"]["SDRplay 信号源"]["module"] = "sdrplay_source";
     defConfig["moduleInstances"]["SDRplay 信号源"]["enabled"] = true;
-    defConfig["moduleInstances"]["SDR++ Server 信号源"]["module"] = "sdrpp_server_source";
-    defConfig["moduleInstances"]["SDR++ Server 信号源"]["enabled"] = true;
+    defConfig["moduleInstances"]["SDR++ 服务器源"]["module"] = "sdrpp_server_source";
+    defConfig["moduleInstances"]["SDR++ 服务器源"]["enabled"] = true;
     defConfig["moduleInstances"]["Spectran HTTP 信号源"]["module"] = "spectran_http_source";
     defConfig["moduleInstances"]["Spectran HTTP 信号源"]["enabled"] = true;
     defConfig["moduleInstances"]["SpyServer 信号源"]["module"] = "spyserver_source";

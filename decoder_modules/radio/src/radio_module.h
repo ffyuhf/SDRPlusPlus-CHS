@@ -50,11 +50,11 @@ public:
         ifnrPresets.define("语音", IFNR_PRESET_VOICE);
         ifnrPresets.define("窄带", IFNR_PRESET_NARROW_BAND);
 
-        squelchModes.define("off", "Off", SQUELCH_MODE_OFF);
-        squelchModes.define("power", "Power", SQUELCH_MODE_POWER);
+        squelchModes.define("off", "关闭", SQUELCH_MODE_OFF);
+        squelchModes.define("power", "功率", SQUELCH_MODE_POWER);
         //squelchModes.define("snr", "SNR", SQUELCH_MODE_SNR);
-        squelchModes.define("ctcss_mute", "CTCSS (Mute)", SQUELCH_MODE_CTCSS_MUTE);
-        squelchModes.define("ctcss_decode", "CTCSS (Decode Only)", SQUELCH_MODE_CTCSS_DECODE);
+        squelchModes.define("ctcss_mute", "CTCSS 模拟亚音 (静音)", SQUELCH_MODE_CTCSS_MUTE);
+        squelchModes.define("ctcss_decode", "CTCSS 模拟亚音 (仅解码)", SQUELCH_MODE_CTCSS_DECODE);
         //squelchModes.define("dcs_mute", "DCS (Mute)", SQUELCH_MODE_DCS_MUTE);
         //squelchModes.define("dcs_decode", "DCS (Decode Only)", SQUELCH_MODE_DCS_DECODE);
 
@@ -257,14 +257,14 @@ private:
 
         // Squelch
         if (_this->squelchAllowed) {
-            ImGui::LeftLabel("Squelch Mode");
+            ImGui::LeftLabel("静噪模式");
             ImGui::FillWidth();
             if (ImGui::Combo(("##_radio_sqelch_mode_" + _this->name).c_str(), &_this->squelchModeId, _this->squelchModes.txt)) {
                 _this->setSquelchMode(_this->squelchModes[_this->squelchModeId]);
             }
             switch (_this->squelchModes[_this->squelchModeId]) {
             case SQUELCH_MODE_POWER:
-                ImGui::LeftLabel("Squelch Level");
+                ImGui::LeftLabel("静噪电平");
                 ImGui::FillWidth();
                 if (ImGui::SliderFloat(("##_radio_sqelch_lvl_" + _this->name).c_str(), &_this->squelchLevel, _this->MIN_SQUELCH, _this->MAX_SQUELCH, "%.3fdB")) {
                     _this->setSquelchLevel(_this->squelchLevel);
@@ -273,7 +273,7 @@ private:
 
             case SQUELCH_MODE_CTCSS_MUTE:
                 if (_this->squelchModes[_this->squelchModeId] == SQUELCH_MODE_CTCSS_MUTE) {
-                    ImGui::LeftLabel("CTCSS Tone");
+                    ImGui::LeftLabel("CTCSS 模拟亚音");
                     ImGui::FillWidth();
                     if (ImGui::Combo(("##_radio_ctcss_tone_" + _this->name).c_str(), &_this->ctcssToneId, _this->ctcssTones.txt)) {
                         _this->setCTCSSTone(_this->ctcssTones[_this->ctcssToneId]);
@@ -314,7 +314,7 @@ private:
 
         // High pass
         if (_this->highPassAllowed) {
-            if (ImGui::Checkbox(("High Pass##_radio_hpf_" + _this->name).c_str(), &_this->highPass)) {
+            if (ImGui::Checkbox(("高通##_radio_hpf_" + _this->name).c_str(), &_this->highPass)) {
                 _this->setHighPass(_this->highPass);
             }
         }
@@ -325,7 +325,7 @@ private:
         // Display the squelch diagnostics
         switch (_this->squelchModes[_this->squelchModeId]) {
         case SQUELCH_MODE_CTCSS_MUTE:
-            ImGui::TextUnformatted("Received Tone:");
+            ImGui::TextUnformatted("CTCSS 亚音解码:");
             ImGui::SameLine();
             {
                 auto ctone = _this->ctcss.getCurrentTone();
@@ -345,7 +345,7 @@ private:
             break;
             
         case SQUELCH_MODE_CTCSS_DECODE:
-            ImGui::TextUnformatted("Received Tone:");
+            ImGui::TextUnformatted("CTCSS 亚音解码:");
             ImGui::SameLine();
             {
                 auto ctone = _this->ctcss.getCurrentTone();

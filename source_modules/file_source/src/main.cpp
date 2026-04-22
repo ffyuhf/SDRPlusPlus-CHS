@@ -44,12 +44,12 @@ public:
         handler.stopHandler = stop;
         handler.tuneHandler = tune;
         handler.stream = &stream;
-        sigpath::sourceManager.registerSource("File", &handler);
+        sigpath::sourceManager.registerSource("文件", &handler);
     }
 
     ~FileSourceModule() {
         stop(this);
-        sigpath::sourceManager.unregisterSource("File");
+        sigpath::sourceManager.unregisterSource("文件");
     }
 
     void postInit() {}

@@ -7,6 +7,7 @@ on:
     pull_request:
         branches-ignore:
         - nightly
+    workflow_dispatch:
 
 env:
     # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -35,7 +36,7 @@ jobs:
         - name: Patch Pothos with earlier libusb version
           working-directory: ${{runner.workspace}}
           run: 7z x libusb.7z -olibusb_old ; rm "C:/Program Files/PothosSDR/bin/libusb-1.0.dll" ; cp "libusb_old/MS64/dll/libusb-1.0.dll" "C:/Program Files/PothosSDR/bin/" ; rm "C:/Program Files/PothosSDR/lib/libusb-1.0.lib" ; cp "libusb_old/MS64/dll/libusb-1.0.lib" "C:/Program Files/PothosSDR/lib/"
- 
+
         - name: Download librtlsdr
           run: Invoke-WebRequest -Uri "https://ftp.osmocom.org/binaries/windows/rtl-sdr/rtl-sdr-64bit-20240623.zip" -OutFile ${{runner.workspace}}/rtl-sdr.zip
 
@@ -189,9 +190,6 @@ jobs:
 
         - name: Install LimeSuite
           run: git clone https://github.com/myriadrf/LimeSuite && cd LimeSuite && mkdir builddir && cd builddir && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release .. && make -j3 && sudo make install && cd ../../
-
-        # - name: Install libperseus
-        #   run: git clone https://github.com/Microtelecom/libperseus-sdr && cd libperseus-sdr && autoreconf -i && ./configure --prefix=/usr/local && make && make install && cd ..
 
         - name: Install librfnm
           run: git clone https://github.com/AlexandreRouma/librfnm && cd librfnm && mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make && sudo make install && cd ..
@@ -543,7 +541,7 @@ jobs:
         - name: Fetch container
           working-directory: ${{runner.workspace}}
           run: git clone https://github.com/AlexandreRouma/android-sdr-kit
-        
+            
         - name: Build container
           working-directory: ${{runner.workspace}}/android-sdr-kit
           run: docker build --progress=plain -t android-sdr-kit .
@@ -562,7 +560,7 @@ jobs:
               path: ${{runner.workspace}}/sdrpp.apk
 
     create_full_archive:
-        needs: [
+        needs: [  
           'build_windows',
           'build_macos_intel',
           'build_macos_arm',
@@ -590,18 +588,18 @@ jobs:
 
         - name: Create Archive
           run: >
-            mkdir sdrpp_all && 
-            mv sdrpp_windows_x64/sdrpp_windows_x64.zip sdrpp_all/ && 
-            mv sdrpp_macos_intel/sdrpp_macos_intel.zip sdrpp_all/ && 
-            mv sdrpp_macos_arm/sdrpp_macos_arm.zip sdrpp_all/ && 
+            mkdir sdrpp_all &&
+            mv sdrpp_windows_x64/sdrpp_windows_x64.zip sdrpp_all/ &&
+            mv sdrpp_macos_intel/sdrpp_macos_intel.zip sdrpp_all/ &&
+            mv sdrpp_macos_arm/sdrpp_macos_arm.zip sdrpp_all/ &&
             mv sdrpp_debian_bullseye_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_amd64.deb &&
             mv sdrpp_debian_bullseye_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bullseye_aarch64.deb &&
-            mv sdrpp_debian_bookworm_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bookworm_amd64.deb && 
-            mv sdrpp_debian_bookworm_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bookworm_aarch64.deb && 
-            mv sdrpp_debian_trixie_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_trixie_amd64.deb && 
-            mv sdrpp_debian_trixie_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_trixie_aarch64.deb && 
-            mv sdrpp_debian_sid_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_amd64.deb && 
-            mv sdrpp_debian_sid_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_aarch64.deb && 
+            mv sdrpp_debian_bookworm_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bookworm_amd64.deb &&
+            mv sdrpp_debian_bookworm_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_bookworm_aarch64.deb &&
+            mv sdrpp_debian_trixie_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_trixie_amd64.deb &&
+            mv sdrpp_debian_trixie_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_trixie_aarch64.deb &&
+            mv sdrpp_debian_sid_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_amd64.deb &&
+            mv sdrpp_debian_sid_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_debian_sid_aarch64.deb &&
             mv sdrpp_ubuntu_focal_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_focal_amd64.deb &&
             mv sdrpp_ubuntu_focal_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_focal_aarch64.deb &&
             mv sdrpp_ubuntu_jammy_amd64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_jammy_amd64.deb &&
@@ -635,7 +633,7 @@ jobs:
 
         - name: Install codespell
           run: sudo apt update -y && sudo apt install -y codespell
-        
+            
         - name: Running codespell
           run: cd $GITHUB_WORKSPACE && codespell -q 2 || true
 
@@ -644,6 +642,6 @@ jobs:
 
         steps:
         - uses: actions/checkout@v4
-        
+            
         - name: Run check_clang_format
           run: cd $GITHUB_WORKSPACE && chmod +x ./check_clang_format.sh && ./check_clang_format.sh || true

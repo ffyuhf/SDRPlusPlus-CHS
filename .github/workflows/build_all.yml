@@ -583,6 +583,8 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+        - uses: actions/checkout@v4
+        
         - name: Download All Builds
           uses: actions/download-artifact@v4
 
@@ -619,13 +621,15 @@ jobs:
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
 
         steps:
+        - uses: actions/checkout@v4
+        
         - name: Download All Builds
           uses: actions/download-artifact@v4
 
         - name: Create and Update Nightly
           run: |
             gh release create nightly --title "Nightly Build" --notes "Automated nightly build" --prerelease || true
-            gh release upload nightly sdrpp_all/* -R ${{github.repository}} --clobber
+            gh release upload nightly sdrpp_all/* --clobber
 
     check_spelling:
         runs-on: ubuntu-latest

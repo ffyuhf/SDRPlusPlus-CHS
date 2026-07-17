@@ -19,7 +19,7 @@ env:
     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-    构建_Windows:
+    build_windows:
         runs-on: windows-latest
 
         steps:
@@ -37,14 +37,14 @@ jobs:
         - name: 下载 libusb
           run: Invoke-WebRequest -Uri "https://github.com/libusb/libusb/releases/download/v1.0.23/libusb-1.0.23.7z" -OutFile ${{runner.workspace}}/libusb.7z
 
-        - name: 使用旧版 libusb 替换 PothosSDR 自带版本
+        - name: 使用旧版 libusb 修补 Pothos
           working-directory: ${{runner.workspace}}
           run: 7z x libusb.7z -olibusb_old ; rm "C:/Program Files/PothosSDR/bin/libusb-1.0.dll" ; cp "libusb_old/MS64/dll/libusb-1.0.dll" "C:/Program Files/PothosSDR/bin/" ; rm "C:/Program Files/PothosSDR/lib/libusb-1.0.lib" ; cp "libusb_old/MS64/dll/libusb-1.0.lib" "C:/Program Files/PothosSDR/lib/"
 
         - name: 下载 librtlsdr
           run: Invoke-WebRequest -Uri "https://ftp.osmocom.org/binaries/windows/rtl-sdr/rtl-sdr-64bit-20260712.zip" -OutFile ${{runner.workspace}}/rtl-sdr.zip
 
-        - name: 使用新版 librtlsdr 替换 PothosSDR 自带版本
+        - name: 使用新版 librtlsdr 修补 Pothos
           working-directory: ${{runner.workspace}}
           run: 7z x rtl-sdr.zip ; rm "C:/Program Files/PothosSDR/bin/rtlsdr.dll" ; cp "rtl-sdr-64bit-20260712/librtlsdr.dll" "C:/Program Files/PothosSDR/bin/rtlsdr.dll"
 
@@ -57,10 +57,10 @@ jobs:
         - name: 下载 codec2
           run: git clone https://github.com/drowe67/codec2
 
-        - name: 准备 MinGW 环境
+        - name: 准备 MinGW
           run: C:/msys64/msys2_shell.cmd -defterm -here -no-start -mingw64 -c "pacman --noconfirm -S --needed base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja"
 
-        - name: 配置 codec2 构建
+        - name: 准备 codec2 构建
           run: cd codec2 ; mkdir build ; cd build ; C:/msys64/msys2_shell.cmd -defterm -here -no-start -mingw64 -c "cmake .. -DCMAKE_GNUtoMS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=-static-libgcc"
 
         - name: 编译 codec2
@@ -87,7 +87,7 @@ jobs:
         - name: 安装 libhydrasdr
           run: git clone https://github.com/hydrasdr/rfone_host; cd rfone_host/ ; mkdir build ; cd build ; cmake .. -DCMAKE_BUILD_TYPE=Release "-DLIBUSB_LIBRARIES=C:\Program Files\PothosSDR\lib\libusb-1.0.lib" "-DLIBUSB_INCLUDE_DIR=C:\Program Files\PothosSDR\include\libusb-1.0" "-DTHREADS_PTHREADS_WIN32_LIBRARY=C:\Program Files\PothosSDR\lib\pthreadVC2.lib" "-DTHREADS_PTHREADS_INCLUDE_DIR=C:\Program Files\PothosSDR\include" ; cmake --build . --config Release ; cmake --install .
 
-        - name: 配置 CMake
+        - name: 准备 CMake
           working-directory: ${{runner.workspace}}/build
           run: cmake -DCOPY_MSVC_REDISTRIBUTABLES=ON "$Env:GITHUB_WORKSPACE" "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake" -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_PERSEUS_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_RFNM_SOURCE=ON -DOPT_BUILD_FOBOSSDR_SOURCE=ON -DOPT_BUILD_HYDRASDR_SOURCE=ON
 
@@ -95,17 +95,17 @@ jobs:
           working-directory: ${{runner.workspace}}/build
           run: cmake --build . --config Release --verbose
 
-        - name: 创建归档包
+        - name: 创建压缩包
           working-directory: ${{runner.workspace}}
           run: '&($Env:GITHUB_WORKSPACE + "/make_windows_package.ps1") ./build ($Env:GITHUB_WORKSPACE + "/root")'
 
-        - name: 保存归档包
+        - name: 保存压缩包
           uses: actions/upload-artifact@v4
           with:
               name: sdrpp_windows_x64
               path: ${{runner.workspace}}/sdrpp_windows_x64.zip
 
-    构建_macOS_Intel:
+    build_macos_intel:
         runs-on: macos-15-intel
 
         steps:
@@ -150,7 +150,7 @@ jobs:
         - name: 安装 libdlcr
           run: wget https://dragnlabs.com/host-tools/dlcr_host_v0.3.0.zip && mkdir dlcr_host && cd dlcr_host && 7z x ../dlcr_host_v0.3.0.zip && mkdir build && cd build && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 .. -DCMAKE_BUILD_TYPE=Release && make -j2 && sudo make install && cd ../../
 
-        - name: 配置 CMake
+        - name: 准备 CMake
           working-directory: ${{runner.workspace}}/build
           run: cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 $GITHUB_WORKSPACE -DOPT_BUILD_PLUTOSDR_SOURCE=ON -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_AUDIO_SINK=OFF -DOPT_BUILD_PORTAUDIO_SINK=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=ON -DOPT_BUILD_PERSEUS_SOURCE=ON -DOPT_BUILD_AUDIO_SOURCE=OFF -DOPT_BUILD_RFNM_SOURCE=ON -DOPT_BUILD_FOBOSSDR_SOURCE=ON  -DOPT_BUILD_HYDRASDR_SOURCE=ON -DOPT_BUILD_DRAGONLABS_SOURCE=ON -DUSE_BUNDLE_DEFAULTS=ON -DCMAKE_BUILD_TYPE=Release
 
@@ -158,17 +158,17 @@ jobs:
           working-directory: ${{runner.workspace}}/build
           run: make VERBOSE=1 -j3
 
-        - name: 创建归档包
+        - name: 创建压缩包
           working-directory: ${{runner.workspace}}
           run: cd $GITHUB_WORKSPACE && sh make_macos_bundle.sh ${{runner.workspace}}/build ./SDR++.app && zip -r ${{runner.workspace}}/sdrpp_macos_intel.zip SDR++.app
 
-        - name: 保存归档包
+        - name: 保存压缩包
           uses: actions/upload-artifact@v4
           with:
               name: sdrpp_macos_intel
               path: ${{runner.workspace}}/sdrpp_macos_intel.zip
 
-    构建_macOS_ARM:
+    build_macos_arm:
         runs-on: macos-15
 
         steps:
@@ -210,7 +210,7 @@ jobs:
         - name: 安装 libdlcr
           run: wget https://dragnlabs.com/host-tools/dlcr_host_v0.3.0.zip && mkdir dlcr_host && cd dlcr_host && 7z x ../dlcr_host_v0.3.0.zip && mkdir build && cd build && cmake -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 .. -DCMAKE_BUILD_TYPE=Release && make -j2 && sudo make install && cd ../../
 
-        - name: 配置 CMake
+        - name: 准备 CMake
           working-directory: ${{runner.workspace}}/build
           run: cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 $GITHUB_WORKSPACE -DOPT_BUILD_PLUTOSDR_SOURCE=ON -DOPT_BUILD_BLADERF_SOURCE=ON -DOPT_BUILD_SDRPLAY_SOURCE=ON -DOPT_BUILD_LIMESDR_SOURCE=ON -DOPT_BUILD_AUDIO_SINK=OFF -DOPT_BUILD_PORTAUDIO_SINK=ON -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON -DOPT_BUILD_M17_DECODER=OFF -DOPT_BUILD_PERSEUS_SOURCE=OFF -DOPT_BUILD_AUDIO_SOURCE=OFF -DOPT_BUILD_RFNM_SOURCE=ON -DOPT_BUILD_FOBOSSDR_SOURCE=ON -DOPT_BUILD_HYDRASDR_SOURCE=ON -DOPT_BUILD_DRAGONLABS_SOURCE=ON -DUSE_BUNDLE_DEFAULTS=ON -DCMAKE_BUILD_TYPE=Release
 
@@ -218,17 +218,17 @@ jobs:
           working-directory: ${{runner.workspace}}/build
           run: make VERBOSE=1 -j3
 
-        - name: 创建归档包
+        - name: 创建压缩包
           working-directory: ${{runner.workspace}}
           run: cd $GITHUB_WORKSPACE && sh make_macos_bundle.sh ${{runner.workspace}}/build ./SDR++.app && zip -r ${{runner.workspace}}/sdrpp_macos_arm.zip SDR++.app
 
-        - name: 保存归档包
+        - name: 保存压缩包
           uses: actions/upload-artifact@v4
           with:
               name: sdrpp_macos_arm
               path: ${{runner.workspace}}/sdrpp_macos_arm.zip
 
-    构建_Debian_Bullseye_AMD64:
+    build_debian_bullseye_amd64:
         runs-on: ubuntu-latest
 
         steps:
@@ -250,7 +250,7 @@ jobs:
               name: sdrpp_debian_bullseye_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    构建_Debian_Bullseye_ARM64:
+    build_debian_bullseye_aarch64:
         runs-on: ubuntu-24.04-arm
 
         steps:
@@ -272,7 +272,7 @@ jobs:
               name: sdrpp_debian_bullseye_aarch64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    构建_Debian_Bookworm_AMD64:
+    build_debian_bookworm_amd64:
         runs-on: ubuntu-latest
 
         steps:
@@ -294,7 +294,7 @@ jobs:
               name: sdrpp_debian_bookworm_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    构建_Debian_Bookworm_ARM64:
+    build_debian_bookworm_aarch64:
         runs-on: ubuntu-24.04-arm
 
         steps:
@@ -316,7 +316,7 @@ jobs:
               name: sdrpp_debian_bookworm_aarch64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    构建_Debian_Trixie_AMD64:
+    build_debian_trixie_amd64:
         runs-on: ubuntu-latest
 
         steps:
@@ -338,7 +338,7 @@ jobs:
               name: sdrpp_debian_trixie_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    构建_Debian_Trixie_ARM64:
+    build_debian_trixie_aarch64:
         runs-on: ubuntu-24.04-arm
 
         steps:
@@ -360,7 +360,7 @@ jobs:
               name: sdrpp_debian_trixie_aarch64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    构建_Debian_Sid_AMD64:
+    build_debian_sid_amd64:
         runs-on: ubuntu-latest
 
         steps:
@@ -382,7 +382,7 @@ jobs:
               name: sdrpp_debian_sid_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    构建_Debian_Sid_ARM64:
+    build_debian_sid_aarch64:
         runs-on: ubuntu-24.04-arm
 
         steps:
@@ -404,7 +404,7 @@ jobs:
               name: sdrpp_debian_sid_aarch64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    构建_Ubuntu_Focal_AMD64:
+    build_ubuntu_focal_amd64:
         runs-on: ubuntu-latest
 
         steps:
@@ -426,7 +426,7 @@ jobs:
               name: sdrpp_ubuntu_focal_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    构建_Ubuntu_Focal_ARM64:
+    build_ubuntu_focal_aarch64:
         runs-on: ubuntu-24.04-arm
 
         steps:
@@ -448,7 +448,7 @@ jobs:
               name: sdrpp_ubuntu_focal_aarch64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    构建_Ubuntu_Jammy_AMD64:
+    build_ubuntu_jammy_amd64:
         runs-on: ubuntu-latest
 
         steps:
@@ -470,7 +470,7 @@ jobs:
               name: sdrpp_ubuntu_jammy_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    构建_Ubuntu_Jammy_ARM64:
+    build_ubuntu_jammy_aarch64:
         runs-on: ubuntu-24.04-arm
 
         steps:
@@ -492,7 +492,7 @@ jobs:
               name: sdrpp_ubuntu_jammy_aarch64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    构建_Ubuntu_Noble_AMD64:
+    build_ubuntu_noble_amd64:
         runs-on: ubuntu-latest
 
         steps:
@@ -514,7 +514,7 @@ jobs:
               name: sdrpp_ubuntu_noble_amd64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    构建_Ubuntu_Noble_ARM64:
+    build_ubuntu_noble_aarch64:
         runs-on: ubuntu-24.04-arm
 
         steps:
@@ -536,7 +536,7 @@ jobs:
               name: sdrpp_ubuntu_noble_aarch64
               path: ${{runner.workspace}}/sdrpp_debian_amd64.deb
 
-    构建_Android:
+    build_android:
         runs-on: ubuntu-latest
 
         steps:
@@ -563,26 +563,26 @@ jobs:
               name: sdrpp_android
               path: ${{runner.workspace}}/sdrpp.apk
 
-    创建完整归档:
+    create_full_archive:
         needs: [
-          '构建_Windows',
-          '构建_macOS_Intel',
-          '构建_macOS_ARM',
-          '构建_Debian_Bullseye_AMD64',
-          '构建_Debian_Bullseye_ARM64',
-          '构建_Debian_Bookworm_AMD64',
-          '构建_Debian_Bookworm_ARM64',
-          '构建_Debian_Trixie_AMD64',
-          '构建_Debian_Trixie_ARM64',
-          '构建_Debian_Sid_AMD64',
-          '构建_Debian_Sid_ARM64',
-          '构建_Ubuntu_Focal_AMD64',
-          '构建_Ubuntu_Focal_ARM64',
-          '构建_Ubuntu_Jammy_AMD64',
-          '构建_Ubuntu_Jammy_ARM64',
-          '构建_Ubuntu_Noble_AMD64',
-          '构建_Ubuntu_Noble_ARM64',
-          '构建_Android'
+          'build_windows',
+          'build_macos_intel',
+          'build_macos_arm',
+          'build_debian_bullseye_amd64',
+          'build_debian_bullseye_aarch64',
+          'build_debian_bookworm_amd64',
+          'build_debian_bookworm_aarch64',
+          'build_debian_trixie_amd64',
+          'build_debian_trixie_aarch64',
+          'build_debian_sid_amd64',
+          'build_debian_sid_aarch64',
+          'build_ubuntu_focal_amd64',
+          'build_ubuntu_focal_aarch64',
+          'build_ubuntu_jammy_amd64',
+          'build_ubuntu_jammy_aarch64',
+          'build_ubuntu_noble_amd64',
+          'build_ubuntu_noble_aarch64',
+          'build_android'
         ]
         runs-on: ubuntu-latest
 
@@ -592,7 +592,7 @@ jobs:
         - name: 下载所有构建产物
           uses: actions/download-artifact@v4
 
-        - name: 创建归档包
+        - name: 创建压缩包
           run: >
             mkdir sdrpp_all &&
             mv sdrpp_windows_x64/sdrpp_windows_x64.zip sdrpp_all/ &&
@@ -614,13 +614,14 @@ jobs:
             mv sdrpp_ubuntu_noble_aarch64/sdrpp_debian_amd64.deb sdrpp_all/sdrpp_ubuntu_noble_aarch64.deb &&
             mv sdrpp_android/sdrpp.apk sdrpp_all/sdrpp.apk
 
-        - uses: actions/upload-artifact@v4
+        - name: 保存压缩包
+          uses: actions/upload-artifact@v4
           with:
             name: sdrpp_all
             path: sdrpp_all/
 
-    发布正式版:
-        needs: [创建完整归档]
+    publish_release:
+        needs: [create_full_archive]
         runs-on: ubuntu-latest
         if: startsWith(github.ref, 'refs/tags/v')
 
@@ -634,8 +635,8 @@ jobs:
           run: |
             gh release create ${{ github.ref_name }} sdrpp_all/* --title "SDR++ ${{ github.ref_name }}" --notes "Automated release build for ${{ github.ref_name }}"
 
-    更新每日构建:
-        needs: [创建完整归档]
+    update_nightly_release:
+        needs: [create_full_archive]
         runs-on: ubuntu-latest
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
 
@@ -645,12 +646,12 @@ jobs:
         - name: 下载所有构建产物
           uses: actions/download-artifact@v4
 
-        - name: 创建并更新每日构建
+        - name: 创建并更新 Nightly 发布
           run: |
             gh release create nightly --title "Nightly Build" --notes "Automated nightly build" --prerelease || true
             gh release upload nightly sdrpp_all/* --clobber
 
-    检查拼写:
+    check_spelling:
         runs-on: ubuntu-latest
 
         steps:
@@ -662,11 +663,11 @@ jobs:
         - name: 运行 codespell
           run: cd $GITHUB_WORKSPACE && codespell -q 2 || true
 
-    检查代码格式:
+    check_formatting:
         runs-on: ubuntu-latest
 
         steps:
         - uses: actions/checkout@v4
 
-        - name: 运行 clang 格式检查
+        - name: 运行 check_clang_format
           run: cd $GITHUB_WORKSPACE && chmod +x ./check_clang_format.sh && ./check_clang_format.sh || true
